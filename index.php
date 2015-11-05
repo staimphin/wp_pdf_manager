@@ -45,11 +45,25 @@ $meta_box = array(
 
 global $gs_file_upload; // base directory for PDF
 global $option; // base directory for theme
-	
+$option=getCurrentThemePath();	
 // base url / theme 
-$gs_file_upload="PDF/";//default folder for the PDF
-$option=getCurrentThemePath();
 
+//move into class!
+// check if folder exist
+if(file_exists($option."/PDF")){
+	$gs_file_upload="PDF/";
+} else if (file_exists($option."/pdf")){
+	$gs_file_upload="pdf/";
+} else {
+//create folder 
+	//echo "** make dir :$option/PDF ";
+	if(mkdir($option."/PDF")){
+		$gs_file_upload="PDF/";
+	} else {
+		echo "ERROR!";
+	}
+}
+/** *	plugin specific * */
 /* function: directory path */
 function getBaseFolder($path)
 {

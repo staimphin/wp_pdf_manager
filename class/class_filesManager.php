@@ -8,6 +8,7 @@
  
 class FFM{
 	private $_ext;
+	private $_root;
 	private $_base;
 	private $_path;
 	private $_folderNames;
@@ -24,9 +25,11 @@ class FFM{
 			 $fullPath= dirname(__FILE__);
 		 }
 
-		$this->_path=$fullPath."/".$path;//
-		$this->_base=$path;
 		
+		$this->_path=$fullPath."/".$path;//current path
+		$this->_root=explode('/',$path);//root folder
+		$this->_base=$path;
+
 		$this->_folders=$this->listFolder();
 		//sort folder
 		rsort($this->_folders);
@@ -102,67 +105,70 @@ class FFM{
 
 	public function listFolder($PATH='')
 	{
+		//chk specified folder or parents	
+//print_r($this->_root);		
+		//if($PATH=''){$PATH= $this->_root[0];}
 		return $this->listFiles($PATH,$output=1);
 	}
 	
 	public function listFiles ($PATH='',$output=0)
 	{
+		if($PATH==''){
+			$PATH=$this->_path;
+		} else {$PATH=$this->_path.$PATH;}
 		$result=array();
-		if(file_exists($this->_path.$PATH)){
-			if ($handle = opendir($this->_path.$PATH) ) {
-			while (false !== ($entry = readdir($handle))) {
-				if ($entry != "." && $entry != ".."){
-					$currentFile =$this->_path.$PATH.'/'.$entry;
-					$ext_length= strlen($this->_ext);
-					if($ext_length>= 2){
-						//compare the ext in lower case
-						if ( strtolower(substr($entry, -$ext_length) )== $this->_ext){
-							if($output==0){
-								$result[]= array(strtoupper($this->_ext) =>$entry);// return the result as a list [EXT][ FLE NAME]
-							}
-						}else{// default list everything
-						// in this case there's a file with an other extension
-							$tmp= explode('.',$entry);
-							$fileExt=strtoupper($tmp[1]);
-							switch($output){
-								case 0:  
-									
-									if(is_file($currentFile)){
-										if($this->_autorised[$fileExt]){
-											//echo "** $fileExt : is file : $currentFile<br>";
+		if(file_exists($PATH)){
+			if ($handle = opendir($PATH) ) {
+				while (false !== ($entry = readdir($handle))) {
+					if ($entry != "." && $entry != ".."){
+						$currentFile =$PATH.'/'.$entry;
+						$ext_length= strlen($this->_ext);
+						if($ext_length>= 2){
+							//compare the ext in lower case
+							if ( strtolower(substr($entry, -$ext_length) )== $this->_ext){
+								if($output==0){
+									$result[]= array(strtoupper($this->_ext) =>$entry);// return the result as a list [EXT][ FLE NAME]
+								}
+							}else{// default list everything
+							// in this case there's a file with an other extension
+								$tmp= explode('.',$entry);
+								$fileExt=strtoupper($tmp[1]);
+								switch($output){
+									case 0:  
+										
+										if(is_file($currentFile)){
+											if($this->_autorised[$fileExt]){
+												//echo "** $fileExt : is file : $currentFile<br>";
+												$result[]=  array(strtoupper($fileExt) =>$entry);
+											}
+										} else {
+											$result[]= $entry;
+										}	
+									break;
+									case 1: // folder name only
+										if( !is_file($currentFile)){$result[]= $entry;};
+									break;
+									case 2: // file only
+										if( is_file($currentFile)){$result[strtoupper($fileExt)]= $entry;};
+									break;
+									case 99: //No filter
+										if(is_file($currentFile)){
 											$result[]=  array(strtoupper($fileExt) =>$entry);
-										}
-									} else {
-										$result[]= $entry;
-									}	
-								break;
-								case 1: // folder name only
-									if( !is_file($currentFile)){$result[]= $entry;};
-								break;
-								case 2: // file only
-									if( is_file($currentFile)){$result[strtoupper($fileExt)]= $entry;};
-								break;
-								case 99: //No filter
-									if(is_file($currentFile)){
-										$result[]=  array(strtoupper($fileExt) =>$entry);
-									} else {
-										$result[]= $entry;
-									}	
-								break;
+										} else {
+											$result[]= $entry;
+										}	
+									break;
+								}
+								//$result[]= $entry; 
 							}
-							//$result[]= $entry; 
 						}
-					}
-				}	
-			} 
+					}	
+				}
+			}			
 			closedir($handle);
 			sort($result);
-			return $result;
-			}
-			else {
-				 return false;
-			}
 		}
+		return $result;
 	}
 	// intend to be display
 	public function displayFilesList($folder='')
@@ -189,9 +195,9 @@ class FFM{
 	{
 		$newfolder= $this->_path.$name;
 		if(file_exists($newfolder)){
-			echo "Folder exist (".$newfolder.")<br>";
+			//echo "Folder exist (".$newfolder.")<br>";
 		}else{
-			echo "Project  (".$newfolder."): DOESN'T EXIST. CREATING.";
+			//echo "Project  (".$newfolder."): DOESN'T EXIST. CREATING.";
 			mkdir($newfolder,0777);
 		}
 	}
@@ -230,7 +236,7 @@ class FFM{
 						}
 					}
 					$destFolder=$this->_path.$folder;
-					echo "will upload to :$destFolder  || tmp name =".$FILE['tmp_name'];
+					//echo "will upload to :$destFolder  || tmp name =".$FILE['tmp_name'];
 					$filename = $FILE['name'];
 					if(is_uploaded_file($FILE['tmp_name'])){
 						if (move_uploaded_file($FILE['tmp_name'],$destFolder.'/'.$filename) == TRUE){
@@ -259,6 +265,7 @@ class FFM{
 	{
 		$max= count($this->_folders);
 		$tree=array();
+		$tree[]= '';
 		for($i=0; $i < $max; $i++){
 			$baseFolder= $this->_folders[$i];
 			$current=$this->listFolder(	$baseFolder); 
