@@ -124,7 +124,9 @@ function pdf_register_buttons( $buttons )
 }
 
 // insert value to head
-/* To move out*/
+/* To move out
+* used in wp post editor
+*/
 function pdf_js_data()
 {
 	global $post;
@@ -137,7 +139,11 @@ function pdf_js_data()
 	<?php
 	// pdfFormLite();
 }
-//replace the tag by URL
+/*replace the tag by URL
+* pdf base should be variable
+* pdf path?
+* used in ??
+*/
 function pdf2link($atts) 
 {
 	$slug=urldecode( get_post_field('post_name',get_the_iD(),'raw'));
@@ -147,7 +153,7 @@ function pdf2link($atts)
 	return $URL;
 }
 
-/** * *		PDF UPLOAD AND MANAGEMENT * * */
+/** * *		PDF UPLOAD AND MANAGEMENT * */
 /*======= plugins functions ==============*/
 function GS_PDF_admin_menu()
 {

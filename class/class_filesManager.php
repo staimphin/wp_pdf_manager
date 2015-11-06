@@ -175,8 +175,10 @@ class FFM{
 	{
 		if($folder!=''){
 			$this->_path= $this->_path.$folder."/";
+			$this->_base= $this->_base.$folder."/";
 			$this->_folders=$this->listFolder();
 		}
+		//echo "***".$this->_path." **";
 		$this->parseFolder();
 		$max= count($this->_folders);
 		

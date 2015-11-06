@@ -10,7 +10,7 @@
 					$tmp=  $this->_files[$this->_folders[$i]][$j][strtoupper($this->_ext)];
 					$filename = explode('.',$tmp);
 ?>
-					<li><a href="<?= $link;?>" class="ico_<?= $filename[1];?>"><?= $filename[0];?></a></li>
+					<li><a href="<?= $link;?>" class="ico_<?= $filename[1];?>" target="blank"><?= $filename[0];?></a></li>
 <?php			
 				}
 ?>
