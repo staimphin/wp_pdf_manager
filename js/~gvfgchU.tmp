@@ -1,0 +1,18 @@
+(function() {
+    tinymce.create('tinymce.plugins.PDFLink', {
+        init : function(ed, url) {
+            ed.addButton('PDFLink', {
+                title : 'Add a PDFLink',
+                image : url+'/image.png',
+                onclick : function() {
+                     ed.selection.setContent('[quote]' + ed.selection.getContent() + '[/quote]');
+ 
+                }
+            });
+        },
+        createControl : function(n, cm) {
+            return null;
+        },
+    });
+    tinymce.PluginManager.add('PDFLink', tinymce.plugins.PDFLink);
+})();

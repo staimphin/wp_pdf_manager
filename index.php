@@ -3,7 +3,7 @@
 Plugin Name:  PDF upload manger 
 Plugin URI: 
 Description:PDF management for Wordpress
-Version: 0.2
+Version: 0.3
 Author: Gregory Staimphin
 Author email: gregory.staimphin@free.fr
 Author URI: 
@@ -24,9 +24,6 @@ License: GPLv2
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-?>
-<?php 
-
 require "class/class_filesManager.php";
 
 add_action( 'admin_menu', 'GS_PDF_admin_menu' );
@@ -113,7 +110,8 @@ function pdf_buttons()
 
 function pdf_add_buttons( $plugin_array ) 
 {
-    $plugin_array['pdflink'] = plugins_url().'/gs_PDF_manager/js/pdf.js' ;
+	$thisDir = getBaseFolder(__DIR__);
+    $plugin_array['pdflink'] = plugins_url().'/'.$thisDir.'/js/pdf.js' ;
     return $plugin_array;
 }
 
@@ -130,15 +128,19 @@ function pdf_register_buttons( $buttons )
 function pdf_js_data()
 {
 	global $post;
-	$list=  pdfFormLite(1);
+	$pdfData= pdfFormLite(1);
+	$list= $pdfData['PDF'];
+	$urls= $pdfData['URL'];
 	?>
 	<script type="text/javascript">
 		var pdfFolder= '<?= urldecode($post->post_name);?>';
 		var foundPDF = [<?= $list;?>];
+		var foundUrlPDF = [<?= $urls;?>];
 	</script>
 	<?php
 	// pdfFormLite();
 }
+
 /*replace the tag by URL
 * pdf base should be variable
 * pdf path?
@@ -147,9 +149,13 @@ function pdf_js_data()
 function pdf2link($atts) 
 {
 	$slug=urldecode( get_post_field('post_name',get_the_iD(),'raw'));
-	$pType=get_post_type();
-	$PDF_path=($pType=='page' || $pType=='post')?$slug:$pType.'/'.$slug;
-	$URL=  get_bloginfo('template_url')."/PDF/$PDF_path/" ;
+	//$pType=get_post_type();
+	//$PDF_path=($pType=='page' || $pType=='post')?$slug:$pType.'/'.$slug;
+	//$URL=  get_bloginfo('template_url')."/PDF/$PDF_path/" ;
+	$URL=  get_bloginfo('template_url')."/$gs_file_upload" ;//gs_file_upload=> pdf/ OR PDF/
+	//check where is the file:
+	//if(file_exists())
+	print_r($atts);
 	return $URL;
 }
 
@@ -168,10 +174,32 @@ function pdfFormLite($return=0){
 	global $post;
 	
 	$pType=$post->post_type;
-	$PDF_path=($pType=='page' || $pType=='post')?$gs_file_upload:$gs_file_upload.$pType.'/';
+	$pName=$post->post_name;
+	$PDF_path= $gs_file_upload.$pType.'/';
+
+	//echo "*INDEX*--Post TYPE=-$pType--PDF PATH-$PDF_path--|| UPLOAD path:$gs_file_upload---\r\n<br>";
+	/* retrieve files infos from root and folder*/
+	
+	$PDF_ROOT= new FFM($gs_file_upload,'PDF', $option);
+	$ROOT_LIST= $PDF_ROOT->getSelectList('',$return);
+	//echo "*INDEX* root list: <br >\r\n";
+	//print_r($ROOT_LIST);	
+	
+/*
 	$PDF= new FFM($PDF_path,'PDF', $option);
-	$selection= ($return==1)?$PDF->getSelectList($post->post_name,$return):$PDF->getSelectList($post->post_name);
-	if($return==1) return $selection;
+	$selection= $PDF->getSelectList('',$return,1);
+	*/
+	//echo "*INDEX* post type list:$pType <br >\r\n";
+	$postNameList= $PDF_ROOT->getSelectList($pType,$return);
+	//	print_r($postNameList);
+	//echo "*INDEX* TYPE/name :$pType.'/'.$pName <br >\r\n";
+	$selection= $PDF_ROOT->getSelectList($pType.'/'.$pName,$return);
+
+	//print_r($selection);
+	$urls="'test'";
+	if($return==1) return array(
+		'PDF'=>$selection['PDF'].$postNameList['PDF'].$ROOT_LIST['PDF'],
+		'URL'=>$selection['PATH'].$selection['FOLDER'].$postNameList['PATH'].$postNameList['FOLDER'].$ROOT_LIST['PATH'].$ROOT_LIST['FOLDER']);
 }
 
 function gs_pdf_page()
