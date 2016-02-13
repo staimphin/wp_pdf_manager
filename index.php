@@ -209,7 +209,7 @@ function gs_pdf_page()
 
 	$PDF= new FFM($gs_file_upload,'PDF', $option);
 	//show
-	$PDF->css();
+//	$PDF->css();
 	$PDF->uploadForm();
 	//Show the list in edit mode
 	$PDF-> manageFiles();

@@ -26,103 +26,25 @@ class FFM{
 			 $fullPath= dirname(__FILE__);
 		 }
 
-		
 		$this->_path=$fullPath."/".$path;//current path
 		$this->_basepath=$fullPath."/";//current path
 		$this->_root=explode('/',$path);//root folder
 		$this->_base=$path;
 
 		$this->_folders=$this->listFolder();
-		//$this->listFolder();
-		//echo "=======*** folders  **==============\r\n<br>";
-		//print_r($this->_folders);
-		//sort folder
-		
-		rsort($this->_folders);//useless
-		
-		
-	//	print_r($this->_folderNames);
-		
+
 		$max= count($this->_folders);
 		for($i=0; $i < $max; $i++){
-		//echo "looking for:".$this->_folders[$i]['PATH']." || fodler list \r\n<br>";
-		//print_r($this->getBaseFolder($this->_folders[$i]['PATH']));
 			if(isset($this->_folders[$i]['FOLDER'])){
 				$this->_folderNames[$this->_folders[$i]['FOLDER']]=1;
 			}
 
 		}
-		//echo "folders name list\r\n<br>";
-		//print_r($this->_folderNames);
-		// handle the upload in case
 		$this->upload();
-	}
-	
-/* to move out*/
-	public function CSS()
-	{
-		echo "<style>
-		.popup{
-			display: block;
-			position: absolute;
-			top:0;
-			background: rgba(0,0,0,0.7);
-			width:100%;
-			height:100%;
-			text-align:center;
-			color: #FFF;
-		}
-		
-		.green {background-color: #0F0;color: #FFF;}
-		.red {background-color: #F00;color: #FFF;}
-		
-		.popup div {
-			display:block;
-			position:relative;
-			padding: 25%;
-			width:45%;
-		}
-		
-		.popup div 	button {
-			margin: 10px;
-			padding: 10px;
-			}
-		
-		h2.alert {
-			color: #F00;
-			font-weight:800;
-			line-height:1.8em;
-			}
-		h3 {			margin: 10px ;}
-		h3,	form ul	li {
-			width:640px;
-		}
-
-		.ico_pdf {}
-		
-		button {
-			border: none;
-			float:right;
-			cursor: pointer;
-			
-		}
-		
-		form ul	li:hover {background: #EEE;}
-		form ul	li {
-			padding:15px;
-			margin: 0 10px;
-		}		
-		form ul	li:nth-of-type(odd){
-			background: #CCC;
-		} 
-		</style>";
 	}
 
 	public function listFolder($PATH='')
 	{
-		//chk specified folder or parents	
-//print_r($this->_root);		
-		//if($PATH=''){$PATH= $this->_root[0];}
 		return $this->listFiles($PATH,$output=1);
 	}
 
@@ -136,75 +58,62 @@ class FFM{
 /* useless?*/
 	public function getFilePathPDF($path)
 	{
-		//echo "<br>**PATH/ current file=: $path <br>\r\n";
-		//echo "**dbg :root: $this->_root ||base: $this->_base ||path: $this->_path ||<br>\r\n recevie path: $path<br>\r\n";
 		if(is_file($path)){
 			$path= dirname($path).'/';
 		}
 		$start= mb_strpos($path, $this->_base)+ mb_strlen($this->_base)-1;
 		$foundPath= preg_replace('#^/#','',mb_substr($path, $start) );
-
-		//echo "<br>**POS: $start** IN　$path<br>\r\nFOUND path:". $foundPath."<br>\r\n<br>\r\n<br>\r\n<br>\r\n<br>\r\n";;
 		return $foundPath;
 	}
 
 
 	public function listFiles ($PATH='',$output=0)
 	{
-		//echo "-BASE PATH $this->_basepath --<br>\r\nREQUESTED PATH*-> $PATH ----<br>\r\n";
+		$result= array();//define root
 		$folderList=array();
-		if($PATH==''){
-			$PATH=$this->_path;
-		} else {$PATH=$this->_basepath.$PATH;}
-		$result= array ();
-		$result= array ('PATH'=>$this->_base, 'FOLDER'=>'');
-		//echo "COMPUTED this -PATH*->  $this->_path ----<br>\r\n";
-		//echo "COMPUTED-PATH*-> $PATH ----<br>\r\n";
+		$PATH=($PATH=='')?$this->_path: $this->_basepath.$PATH;
+
 		if(file_exists($PATH)){
 			if ($handle = opendir($PATH) ) {
-				
-				
 				while (false !== ($entry = readdir($handle))) {
+
 					if ($entry != "." && $entry != ".."){
 						/* READING FOLDER*/
 						/*adding trailling slah if requiered*/
-							$path_length= mb_strlen($PATH);
-							$lastChar= mb_substr($PATH, $path_lenght-1);
-							if($lastChar !='/'){
-								$PATH .='/';
-							}
-						//echo "----HERE ($PATH) -SOMETHING ($entry) CASE--$output-\r\n";
+						$path_length= mb_strlen($PATH);
+						$lastChar= mb_substr($PATH, $path_lenght-1);
+						$PATH .=($lastChar !='/')?'/':'';
+
 						$currentFile =$PATH.$entry;
 						$currentFolder= $this->getFilePathPDF($currentFile);
-						//$currentFolder= $this->_base;
+						$folderList[]= $currentFolder;
 						$ext_length= strlen($this->_ext);
+						
 						if($ext_length>= 2){
 							//compare the ext in lower case
 							if ( strtolower(substr($entry, -$ext_length) )== $this->_ext){
-									//echo "--PDFFOUND--$output-|| ext len=> $ext_length VS ".$this->_ext."| test: ". strtolower(substr($entry, -$ext_length) )."｜ $entry | $currentFolder \r\n";
-									switch($output){
-										case 0:
-												if( !is_file($currentFile)){//shouldn't be the case
-											//	$result[]= array( 'PATH'=>$currentFolder, 'FOLDER'=>$entry);
-											}	else {
-												$result[]= array('PDF' =>$entry, 'PATH'=>$this->_base, 'FOLDER'=>$currentFolder);// return the result as a list [EXT][ FLE NAME]
-											}
-										
-										break;
-										case 1:
-											if( !is_file($currentFile)){
-												$result[]=   array ('PATH'=>$this->_base, 'FOLDER'=>$currentFolder);
-											}else {
-												/* necesseary for listing on the root? */
-											//	$result[]=   array('PDF' =>$entry,  'PATH'=>$this->_base, 'FOLDER'=>$currentFolder);
-											}// break;
-										break;
-										case 2:	
-											if( is_file($currentFile)){
-												$result[]=   array('PDF' =>$entry,  'PATH'=>$this->_base, 'FOLDER'=>$currentFolder);
-											}// break;
-										default: break;
-									}
+								switch($output){
+									case 0:
+											if( !is_file($currentFile)){//shouldn't be the case
+											//echo "----NOt A FILE--- $output **";
+										}	else {
+											$result[]= array('PDF' =>$entry, 'PATH'=>$this->_base, 'FOLDER'=>$currentFolder);// return the result as a list [EXT][ FLE NAME]
+										}
+									break;
+									case 1:
+										if( !is_file($currentFile)){
+											$result[]=   array ('PATH'=>$this->_base, 'FOLDER'=>$currentFolder);
+										}else {
+											/* necesseary for listing on the root? */
+											$result[]=   array('PDF' =>$entry,  'PATH'=>$this->_base, 'FOLDER'=>$currentFolder);
+										}// break;
+									break;
+									case 2:	
+										if( is_file($currentFile)){
+											$result[]=   array('PDF' =>$entry,  'PATH'=>$this->_base, 'FOLDER'=>$currentFolder);
+										}// break;
+									default: break;
+								}
 
 							}else{// default list everything
 							// in this case there's a file with an other extension
@@ -212,21 +121,17 @@ class FFM{
 								$fileExt=strtoupper($tmp[1]);
 								switch($output){
 									case 0:  
-										
 										if(is_file($currentFile)){
 											if($this->_autorised[$fileExt]){
-												//echo "** $fileExt : is file : $currentFile<br>";
 												$result[]=  array(strtoupper($fileExt) =>$entry,  'PATH'=>$this->_base, 'FOLDER'=>$currentFolder);
 											}
 										} else {
 											//we found a folder. assuming a sub folder
-											//echo "----LOOKING FOR THE FILECASE　A -add sub folder -$output-\r\n 'PATH'=>".$this->_base." 'FOLDER'=>".$currentFolder."\r\n";
 											$result[]=    array('PATH'=>$this->_base,'FOLDER'=>$currentFolder.'/','L221'=>0);//   'FOLDER'=>$currentFolder   'PDF' =>'', 
 										}	
 									break;
-									case 1: // fLOOKING　FOR FOLDER LIST
+									case 1: // LOOKING　FOR FOLDER LIST
 										if( !is_file($currentFile)){
-											//echo "----LOOKING FOR FOLDR LIST--$output-\r\n";
 											$result[]=   array('PATH'=>$this->_base, 'FOLDER'=>$currentFolder,'L227'=>0);
 										}
 									break;
@@ -236,11 +141,9 @@ class FFM{
 										};
 									break;
 									case 99: //No filter
-									//echo "----NO FILTERS-$output-\r\n";
 										if(is_file($currentFile)){
 											$result[]=   array(strtoupper($fileExt) =>$entry,'PATH'=>$this->_base, 'FOLDER'=>$currentFolder);
 										} else {
-											//echo "----LOOKING FOR THE FILECASE C--$output-\r\n";
 											$result[]=   array('PDF' =>'', 'PATH'=>$currentFolder.$entry, 'FOLDER'=>$entry);
 										}	
 									break;
@@ -248,45 +151,52 @@ class FFM{
 								//$folderList[]=$currentFolder.$entry;
 							}
 						} else {
-							echo "other case";
+							//echo "other case";
 							//$result[]= $entry; 
 						}
 					}	
 				}//end while
 			closedir($handle);
-			sort($result);
-			} else {echo "---Can open Files!";}	
+			} else {
+				//echo "---Can open Files!";
+			}	
 		} else {
 			//echo "---no files exists!";//happends when listing the pdf for wp composer
 		}
-		//echo "*** function resuslt ****\r\n<br>";
-		//print_r( $result );
-		//$this->_folderNames= array_unique($folderList);
 
-		return $result;
+		$this->_folderNames= array_unique($folderList);
+
+		return (count($result)>0)?$result: array ('PATH'=>$this->_base, 'FOLDER'=>'');//define root;
 	}
 	
 	/* intend to be display
 	SHOULD BE--OK 2015-12-01 */ 
-	public function displayFilesList($folder='')
+	public function displayFilesList($folder='',$downloadoption=0)
 	{
 		if($folder!=''){
-			//echo "---CUSTOM PATH: $folder --------------";
 			$this->_path= $this->_path.$folder."/";
 			$this->_base= $this->_base.$folder."/";
 			$this->_folders=$this->listFolder();
 		}
-		//echo "[DISPLAY FUNCTION]***".$this->_path." **";
+
 		$this->parseFolder();
-		//print_R($this->_files);
-		$max= count($this->_folders);
+		$projectName=strtolower(get_current_theme() );// $SASS_BASE."project/
+		$base= dirname(__FILE__);
+		$keyword="plugins";
+		$base= substr($base,0 , strpos($base,$keyword));
+		$destination= str_replace('/var/www/html/','', $base)."themes/$projectName/".$this->_path;
+		
+		$max=(isset($this->_folders[0]))? count($this->_folders):1;
 		
 		for($i=0; $i < $max; $i++){
+
 			$currentFolderLevel= $this->_folders[$i]['PATH'].$this->_folders[$i]['FOLDER'];
+			$PATH=(isset($this->_folders[$i]['PATH']))? $this->_folders[$i]['PATH']: $this->_folders['PATH'];
+			$FOLDER= (isset($this->_folders[$i]['FOLDER']))? $this->_folders[$i]['FOLDER']: $this->_folders['FOLDER'];
 			$sub= count($this->_files[	$currentFolderLevel] );
+
 			if($sub>0){
-			//to put inside a template
-				include(dirname(__FILE__). "/../template/files_list.php");
+				include(dirname(__FILE__). "/../template/files_list.php");	//to put inside a template
 			}
 		}
 		
@@ -368,10 +278,11 @@ class FFM{
 	public function getTree()
 	{
 		$max= count($this->_folders);
+		//print_r($this->_folders);
 		$tree=array();
 		$tree[]= '';
 		for($i=0; $i < $max; $i++){
-			$baseFolder= $this->_folders[$i]['PATH'];
+			$baseFolder= (isset($this->_folders[$i]['PATH']))?$this->_folders[$i]['PATH']:$this->_folders[$i];
 			$current=$this->listFolder(	$baseFolder); 
 			$tree[]=  $baseFolder;
 			$maxSub= count($current);
@@ -379,7 +290,6 @@ class FFM{
 				$tree[]=  $baseFolder.$current[$j]['FOLDER'];;
 			}
 		}
-		
 		return array_unique($tree);
 	}
 	/* IN PROGRESS*/
@@ -390,59 +300,57 @@ class FFM{
 		$this->_folders[]=  array ('PATH'=>$this->_base, 'FOLDER'=>'', 'ROOT'=>1);// add root
 		$max= count($this->_folders);
 		//echo "----------------------------------------------------DEBUG ADMIN=============================<br>\r\n";
-		//print_r($this->_folders);
+	//	print_r($this->_folders);// FOLDER LIST
 		for($i=0; $i < $max; $i++){
-			$baseFolder= $this->_folders[$i]['PATH'].$this->_folders[$i]['FOLDER'];//list of directory dedicated to PDF
-			echo "<h2>親フォルダー：$baseFolder</h2>";
-			$current=$this->listFolder(	$baseFolder); 
-			
-			//is there any file in this root?
-			// a bit WET!!!! Think about a more DRY way
-			$currentFolder='';//$baseFolder;
-			$currentPDFList= $this->listFiles(	$baseFolder) ;
-		//	echo "------PDF LIST FOR THIS FOLDER --------------- ";
-		//	print_r($currentPDFList);
-		//	echo "CURRENT SUBFOLDER LIST FOR THIS FOLDER --------------- ";
-		//	print_r($current);
-			$sub= count($currentPDFList);
-			/* ==================
-			
-				root folder doesnt lists
-			
-			========================*/
-		//	if( )){
-				//print_R($current);
-				//echo "base folder";
-				//print_R($baseFolder);
-				$pdfPath=$this->_folders[$i]['PATH'].$this->_folders[$i]['FOLDER'];
-				include(dirname(__FILE__). "/../template/files_mng.php");
-			//} else {
-			if(!isset($this->_folders[$i]['ROOT'])) {
-			//check for sub folders
-				$maxSub= count($current);
-				//echo "===FOUND $maxSub SUBFOLDER  FOR THIS FOLDER --------------- ";
-				if($maxSub>0){
-					for($j=0; $j < $maxSub; $j++){
-						$pdfPath= $current[$j]['PATH'].$current[$j]['FOLDER'];
-						$currentFolder=$current[$j]['FOLDER'];
-						//echo ">>>>>>>>>>>>>CURRENT PDF PATH: $pdfPath --------------- ";
-						
-						$currentPDFList= $this->listFiles(	$pdfPath) ;
-						//			echo "------PDF LIST FOR THISSUB FOLDER --------------- ";
-					//print_r($currentPDFList);
-						$sub= count($currentPDFList);
-						//echo ">>>>>>>>>>>>-------SUBNAME: $currentFolder---Sub Found: $sub----- ";
-						if($sub>0){include(dirname(__FILE__). "/../template/files_mng.php");}
-					}
-				}else{
-					//$currentFolder=$current[$j]['FOLDER'];
-				//	if($sub>0){include(dirname(__FILE__). "/../template/files_mng.php");}
-				}
+			$ENTRY=$this->_folders[$i];
+			if(is_array($ENTRY)){
+
+				$PATH= (isset($ENTRY['PATH']))?$ENTRY['PATH']:$ENTRY;
+				$FOLDER=(isset($ENTRY['FOLDER']))?$ENTRY['FOLDER']:'';
+				$baseFolder= $PATH.$FOLDER;//list of directory dedicated to PDF
 				
+				echo "<h2>親フォルダー：$baseFolder</h2>";
+				
+				$currentFolder='';// reset?
+				
+				$current=$this->listFolder(	$baseFolder); 
+				$maxSub= count($current);
+				$currentPDFList= $this->listFiles(	$FOLDER) ;
+				$sub= count($currentPDFList);
+	
+				//check list the file
+				$LIST ='';
+				if($maxSub>0){
+					
+					for($j=0; $j < $maxSub; $j++){
+						$PDF=(isset($current[$j]['PDF']))?$current[$j]['PDF']:'';
+						if($PDF!=''){//Files
+							$pdfPath= $current[$j]['PATH'].$current[$j]['FOLDER'];
+							$currentFolder=$current[$j]['FOLDER'];
+
+							$isFolder=0;
+							$EXT_KEY= explode('.',$PDF);
+						//	print_r($EXT_KEY);
+							$extPos=count($EXT_KEY)-1;
+							$filename= $EXT_KEY[0];
+							if( $EXT_KEY[$extPos]== strtoupper($this->_ext)){
+								$link=  get_bloginfo('template_url').'/'.	$pdfPath.'/'.$filename.'.'.strtoupper($this->_ext);
+							//	$filename= $EXT_KEY[0];
+							} else {
+								$link=  get_bloginfo('template_url').'/'.	$pdfPath.'/'.$filename.'.'.$EXT_KEY[$extPos];
+							}
+
+							if($isFolder==0){
+								$LIST .=' 	<li>'.$filename.'<button type="submit" name="delete" value="'.  base64_encode ( 	$pdfPath ).'_'. base64_encode ( $filename ).'">ファイル削除</button></li>';
+							}
+						}
+					}
+					include(dirname(__FILE__). "/../template/files_mng.php");
+				}
 			}
 		}
-		
 	}
+
 	private function deleteMng()
 	{
 		if(isset($_POST['delete'])){
@@ -458,22 +366,18 @@ class FFM{
 			}
 		} 
 	}
-	// intend to be private
+
 	private function parseFolder($option=0)
 	{
-		//echo "<br>\r\n***PARSE FOLDER <br>\r\n";
-		//print_r($this->_folders);
-		//echo "<br>\r\n   LIST FILES START HERE:<br>\r\n";
-		//echo "<br>\r\n";
 		$max= count($this->_folders);
 		for($i=0; $i < $max; $i++){
-		//echo "($i)LOOKING　FOR FILES IN:".$this->_folders[$i]['PATH'].$this->_folders[$i]['FOLDER']."<br>\r\n";
-			$FILES_LIST[$this->_folders[$i]['PATH'].$this->_folders[$i]['FOLDER']]= $this->listFiles($this->_folders[$i]['PATH'].$this->_folders[$i]['FOLDER'],$option);//.$this->_folders[$i]['PDF']
+			$PATH= (isset($this->_folders[$i]['PATH']))?$this->_folders[$i]['PATH']:$this->_folders[$i];
+			$FOLDER=(isset($this->_folders[$i]['PATH']))?$this->_folders[$i]['FOLDER']:'';
+			$FILES_LIST[$PATH.$FOLDER]= $this->listFiles($PATH.$FOLDER,$option);//.$this->_folders[$i]['PDF']
 		}
-		//print_R($FILES_LIST);
 		$this->_files=$FILES_LIST;
 	}
-/* doesnt reurn a folder*/
+/* doesnt return a folder?*/
 	public function getSelectList($folder='',$return=1,$debug=0)
 	{
 		if($folder!=''){
@@ -505,8 +409,7 @@ class FFM{
 				}		
 			}
 		}
-
 		return $TMP;
 	}
-	
+
 }
